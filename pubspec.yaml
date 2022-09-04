@@ -22,6 +22,11 @@ dev_dependencies:
 
 
 flutter:
+  fonts:
+    - family: NotoSansJP
+      fonts:
+        - asset: fonts/NotoSansJP-Medium.otf
+
   assets:
     - assets/
   uses-material-design: true
