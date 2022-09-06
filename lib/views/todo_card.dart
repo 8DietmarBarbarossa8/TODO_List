@@ -1,13 +1,38 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:flutter/material.dart';
 import 'package:todo_list/models/task.dart';
 
-class TodoCard extends StatelessWidget {
+class TodoCard extends StatefulWidget {
   late Task task;
+  late Function completingAction, starAction;
 
-  TodoCard({Key? key, required this.task}) : super(key: key);
+  TodoCard(
+      {Key? key,
+      required this.task,
+      required this.completingAction,
+      required this.starAction})
+      : super(key: key);
 
   @override
+  State<StatefulWidget> createState() => _TodoCard();
+}
+
+class _TodoCard extends State<TodoCard> {
+  @override
   Widget build(BuildContext context) {
+    Icon completeIcon = Icon(
+      widget.task.isCompleted ? Icons.check : Icons.circle_outlined,
+      color: Colors.grey,
+      size: 28,
+    );
+
+    Icon starIcon = Icon(
+      widget.task.isStarred ? Icons.star_rounded : Icons.star_outline_rounded,
+      color: Colors.grey,
+      size: 23,
+    );
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       width: MediaQuery.of(context).size.width,
@@ -27,17 +52,20 @@ class TodoCard extends StatelessWidget {
                   margin: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      Icon(
-                        task.isCompleted ? Icons.check : Icons.circle_outlined,
-                        color: Colors.grey,
-                        size: 28,
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            widget.completingAction();
+                          });
+                        },
+                        icon: completeIcon,
                       ),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            task.taskName,
+                            widget.task.taskName,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -72,13 +100,14 @@ class TodoCard extends StatelessWidget {
                   child: Row(
                     children: [
                       const SizedBox(width: 10),
-                      Icon(
-                        task.isStarred
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded,
-                        color: Colors.grey,
-                        size: 23,
-                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            widget.starAction();
+                          });
+                        },
+                        icon: starIcon,
+                      )
                     ],
                   ),
                 )
@@ -91,7 +120,7 @@ class TodoCard extends StatelessWidget {
   }
 
   String _setDataFormat() {
-    DateTime dateTime = task.data;
+    DateTime dateTime = widget.task.data;
     DateTime currentDT = DateTime.now();
 
     bool yearEquals = dateTime.year == currentDT.year;

@@ -1,12 +1,15 @@
 class Task {
   late String taskName;
   late DateTime data;
-  late bool isStarred;
-  late bool isCompleted;
+  bool isStarred;
+  bool isCompleted;
 
   Task(
       {required this.taskName,
       required this.data,
-      required this.isStarred,
-      required this.isCompleted});
+      this.isStarred = false,
+      this.isCompleted = false});
+
+  @override
+  String toString() => "Student {$taskName, $data, $isStarred, $isCompleted}";
 }

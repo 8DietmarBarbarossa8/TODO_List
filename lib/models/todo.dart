@@ -10,43 +10,16 @@ class Todo extends StatefulWidget {
 }
 
 class _TodoState extends State<Todo> {
-  final List<TodoCard> _cards = [
-    TodoCard(
-        task: Task(
-          taskName: "Go outside",
-          data: DateTime(2022, 9, 3),
-          isStarred: false,
-          isCompleted: false,
-        )),
-    TodoCard(
-        task: Task(
-          taskName: "Feed cat",
-          data: DateTime(2022, 9, 4),
-          isStarred: false,
-          isCompleted: false,
-        )),
-    TodoCard(
-        task: Task(
-          taskName: "Create app",
-          data: DateTime(2022, 9, 5),
-          isStarred: false,
-          isCompleted: true,
-        )),
-    TodoCard(
-        task: Task(
-          taskName: "Be cool",
-          data: DateTime(2022, 10, 26),
-          isStarred: true,
-          isCompleted: false,
-        )),
-    TodoCard(
-        task: Task(
-          taskName: "Become a superman",
-          data: DateTime(2023, 1, 3),
-          isStarred: true,
-          isCompleted: true,
-        )),
+  final List<Task> tasks = [
+    Task(
+      taskName: "Become a superman",
+      data: DateTime(2023, 1, 3),
+      isStarred: true,
+      isCompleted: true,
+    )
   ];
+
+  final TextEditingController _textFieldController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +41,13 @@ class _TodoState extends State<Todo> {
                   image: AssetImage('assets/todo_background.jpg'),
                   fit: BoxFit.cover)),
           child: ListView(
-            children: [for (var c in _cards) c],
+            children: tasks.map((Task task) {
+              return TodoCard(
+                task: task,
+                completingAction: changeCompletingStatus(task),
+                starAction: changeStarredStatus(task),
+              );
+            }).toList(),
           )),
       floatingActionButton: FloatingActionButton(
         onPressed: () => setState(() {
@@ -83,11 +62,46 @@ class _TodoState extends State<Todo> {
   }
 
   void _addTask() {
-    _cards.add(TodoCard(task: Task(
-      taskName: "Create tasks like Dietrich Alex",
-      data: DateTime(2022, 9, 5),
-      isStarred: false,
-      isCompleted: false,
-    )));
+    _displayDialog();
+  }
+
+  Function changeCompletingStatus(Task task) {
+    return () => task.isCompleted = !task.isCompleted;
+  }
+
+  Function changeStarredStatus(Task task) {
+    return () => task.isStarred = !task.isStarred;
+  }
+
+  // textFieldController.text
+  Future<void> _displayDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add a new todo item'),
+          content: TextField(
+            controller: _textFieldController,
+            decoration: const InputDecoration(hintText: 'Type your new todo'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Add'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  tasks.add(Task(
+                    taskName: _textFieldController.text,
+                    data: DateTime.now(),
+                  ));
+                });
+                _textFieldController.clear();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
