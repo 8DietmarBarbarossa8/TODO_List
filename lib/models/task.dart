@@ -1,6 +1,6 @@
 class Task {
   late String taskName;
-  late DateTime data;
+  DateTime? data;
   bool isStarred;
   bool isCompleted;
 
