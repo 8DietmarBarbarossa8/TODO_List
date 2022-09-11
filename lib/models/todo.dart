@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:todo_list/models/task.dart';
 import 'package:todo_list/views/todo_card.dart';
 
+import '../database/application_database.dart';
 import '../tools/data_time_format.dart';
 
 class Todo extends StatefulWidget {
@@ -12,8 +13,16 @@ class Todo extends StatefulWidget {
 }
 
 class _TodoState extends State<Todo> {
-  final List<Task> tasks = [];
+  List<Task> tasks = [];
   final TextEditingController _textFieldController = TextEditingController();
+  final _db = DatabaseConnect();
+  int _sortMode = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    updateList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +33,24 @@ class _TodoState extends State<Todo> {
           "Tasks",
           style: TextStyle(fontSize: 24),
         ),
+        actions: [
+          IconButton(
+              onPressed: () {
+                _sortList();
+              },
+              icon: const Icon(
+                Icons.filter_alt_rounded,
+                color: Colors.white,
+              )),
+          IconButton(
+              onPressed: () {
+                _deleteTask();
+              },
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.white,
+              )),
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -93,7 +120,7 @@ class _TodoState extends State<Todo> {
                 child: const Text('Add'),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _addTask(_textFieldController.text, newDT);
+                  _addTask(_textFieldController.text, newDT ?? DateTime.now());
                   _textFieldController.clear();
                 },
               ),
@@ -104,20 +131,55 @@ class _TodoState extends State<Todo> {
     );
   }
 
-  void _addTask(String name, DateTime? dateTime) {
+  void updateList() async {
+    await _db.getTask().then((value) {
+      setState(() => tasks = value);
+    });
+  }
+
+  void _addTask(String name, DateTime dateTime) {
     setState(() {
-      tasks.add(Task(
+      Task task = Task(
         taskName: name,
         data: dateTime,
-      ));
+      );
+      _db.insertTask(task);
+      updateList();
+    });
+  }
+
+  void _sortList() {
+    setState(() {
+      _sortMode++;
+      if (_sortMode == 1) {
+        tasks.sort((a, b) => a.taskName.compareTo(b.taskName));
+      } else if (_sortMode == 2) {
+        tasks.sort((a, b) => a.data.compareTo(b.data));
+        _sortMode = 0;
+      }
+    });
+  }
+
+  void _deleteTask() {
+    setState(() {
+      if (tasks.isNotEmpty) {
+        _db.deleteTask(tasks[tasks.length - 1]);
+      }
+      updateList();
     });
   }
 
   Function _changeCompletingStatus(Task task) {
-    return () => task.isCompleted = !task.isCompleted;
+    return () {
+      task.isCompleted = !task.isCompleted;
+      _db.updateTask(task);
+    };
   }
 
   Function _changeStarredStatus(Task task) {
-    return () => task.isStarred = !task.isStarred;
+    return () {
+      task.isStarred = !task.isStarred;
+      _db.updateTask(task);
+    };
   }
 }
